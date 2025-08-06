@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление работниками</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; background-color: #f9f9f9; }
+        h1, h2 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1em; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        .actions span { cursor: pointer; font-weight: bold; margin: 0 5px; }
+        .edit-btn { color: #f0ad4e; }
+        .delete-btn { color: #d9534f; }
+        .edit-btn:hover, .delete-btn:hover { text-decoration: underline; }
+        #add-worker-section { margin-top: 2em; padding: 1.5em; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        #add-worker-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        #add-worker-form input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .form-actions { grid-column: 1 / -1; display: flex; gap: 10px; }
+        .form-actions button { flex-grow: 1; padding: 10px 15px; cursor: pointer; color: white; border: none; border-radius: 4px; }
+        #submit-btn { background-color: #5cb85c; }
+        #cancel-btn { background-color: #777; }
+    </style>
+</head>
+<body>
+
+<h1>Управление работниками</h1>
+<table id="worker-table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Имя</th>
+        <th>Фамилия</th>
+        <th>Email</th>
+        <th>Компания</th>
+        <th class="actions">Действия</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div id="add-worker-section">
+    <h2 id="form-title">Добавить нового работника</h2>
+    <form id="add-worker-form">
+        <input type="hidden" id="worker-id">
+
+        <input type="text" id="worker-first-name" placeholder="Имя" required>
+        <input type="text" id="worker-last-name" placeholder="Фамилия" required>
+        <input type="email" id="worker-email" placeholder="Email" required>
+        <input type="text" id="worker-company" placeholder="Компания" required>
+
+        <div class="form-actions">
+            <button type="submit" id="submit-btn">Добавить</button>
+            <button type="button" id="cancel-btn" style="display:none;">Отмена</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const apiUrl = '/api/v1/workers';
+    const workerTableBody = document.querySelector("#worker-table tbody");
+    const form = document.getElementById('add-worker-form');
+    const formTitle = document.getElementById('form-title');
+    const workerIdInput = document.getElementById('worker-id');
+    const firstNameInput = document.getElementById('worker-first-name');
+    const lastNameInput = document.getElementById('worker-last-name');
+    const emailInput = document.getElementById('worker-email');
+    const companyInput = document.getElementById('worker-company');
+    const submitBtn = document.getElementById('submit-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+
+    async function fetchWorkers() {
+        const response = await fetch(apiUrl);
+        const workers = await response.json();
+        workerTableBody.innerHTML = '';
+        workers.forEach(worker => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${worker.id}</td>
+                <td>${worker.first_name}</td>
+                <td>${worker.last_name}</td>
+                <td>${worker.email}</td>
+                <td>${worker.company}</td>
+                <td class="actions">
+                    <span class="edit-btn" onclick='editWorker(${JSON.stringify(worker)})'>Изменить</span>
+                    <span class="delete-btn" onclick="deleteWorker(${worker.id})">Удалить</span>
+                </td>
+            `;
+            workerTableBody.appendChild(row);
+        });
+    }
+
+    function editWorker(worker) {
+        formTitle.textContent = 'Редактировать работника';
+        workerIdInput.value = worker.id;
+        firstNameInput.value = worker.first_name;
+        lastNameInput.value = worker.last_name;
+        emailInput.value = worker.email;
+        companyInput.value = worker.company;
+        submitBtn.textContent = 'Сохранить изменения';
+        cancelBtn.style.display = 'block';
+        window.scrollTo(0, document.body.scrollHeight); // Прокрутка к форме
+    }
+
+    function resetForm() {
+        formTitle.textContent = 'Добавить нового работника';
+        form.reset();
+        workerIdInput.value = '';
+        submitBtn.textContent = 'Добавить';
+        cancelBtn.style.display = 'none';
+    }
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+        const id = workerIdInput.value;
+        const workerData = {
+            first_name: firstNameInput.value,
+            last_name: lastNameInput.value,
+            email: emailInput.value,
+            company: companyInput.value,
+        };
+
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `${apiUrl}/${id}` : apiUrl;
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(workerData)
+            });
+            if (!response.ok) throw new Error('Ошибка сети');
+            resetForm();
+            fetchWorkers();
+        } catch (error) {
+            console.error('Ошибка при сохранении работника:', error);
+        }
+    }
+
+    async function deleteWorker(id) {
+        if (!confirm(`Удалить работника с ID ${id}?`)) return;
+        await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+        fetchWorkers();
+    }
+
+    form.addEventListener('submit', handleSubmit);
+    cancelBtn.addEventListener('click', resetForm);
+    document.addEventListener('DOMContentLoaded', fetchWorkers);
+</script>
+
+</body>
+</html>
