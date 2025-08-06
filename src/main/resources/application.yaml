@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: jdbc:postgresql://host.docker.internal:5432/worker_db
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://ep-lively-dream-a2vnihv0-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require
+    username: neondb_owner
+    password: npg_EQGJtxkgmz50
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
