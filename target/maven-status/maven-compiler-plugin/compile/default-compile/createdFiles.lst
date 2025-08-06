@@ -1,0 +1,6 @@
+quartz\crm\service\Impl\WorkerServiceImpl.class
+quartz\crm\service\WorkerService.class
+quartz\crm\controller\WorkerController.class
+quartz\crm\repository\WorkerRepository.class
+quartz\crm\CrmApplication.class
+quartz\crm\model\Worker.class
