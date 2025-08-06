@@ -13,5 +13,5 @@ COPY src/main/resources/application.yml application.yml
 # Открываем порт 808012
 EXPOSE 8080
 
-# Запускаем приложение
+# Запускаем приложение1
 ENTRYPOINT ["java", "-jar", "app.jar"]
